@@ -1,5 +1,13 @@
 #include "shader.h"
 
+void check()
+{
+	GLenum err;
+	if((err=glGetError())!=0) {
+		printf("\n%s:%d %s\n", __func__, __LINE__, gluErrorString(err));
+		exit(1);
+	}
+}
 shader::shader(char* vert, char* frag)
 {
 	//std::cerr << "creating shaders : " << vert << ", " << frag << std::endl;
@@ -46,9 +54,10 @@ shader::~shader()
 
 void shader::reload()
 {
+	GLenum err;
 	//std::cerr << "reloading " << vert << ", " << frag << std::endl;
-	glDetachObjectARB(shaderobj, this->vertexshader);
-	glDetachObjectARB(shaderobj, this->fragmentshader);
+	glDetachObjectARB(shaderobj, vertexshader);
+	glDetachObjectARB(shaderobj, fragmentshader);
 
 	vertexshader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 	fragmentshader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
@@ -72,13 +81,13 @@ void shader::reload()
 	glLinkProgramARB(shaderobj);
 	printInfoLog(shaderobj);
 
+	//t_tex = 0;
 	for(size_t i=0; i<value.size(); i++)
 	{
-		if(type.at(i)=='t') n_tex--;
+		if(type.at(i)=='t') continue;//n_tex++;
 		setUniform(i,value.at(i));
 	}
 
-	GLenum err;
 	if((err=glGetError())!=0) {
 		printf("\n%s: %d\n", __func__, __LINE__);
 		exit(1);
@@ -162,8 +171,14 @@ unsigned int shader::addUniform(
 			name, uniformIdx
 		)
 	);
+	if(t=='t') 
+		textures.insert(
+			make_pair<GLuint, GLuint>(
+				id, n_tex
+			)
+		);
 	setUniform(uniformIdx, value);
-	//std::cerr << "added Uniform " << name << " at index " << id << "/" << uniformIdx << std::endl;
+	n_tex++;
 	uniformIdx++;
 	return uniformIdx-1;
 }
@@ -179,14 +194,19 @@ void shader::setUniform(unsigned int idx, void* value)
 	switch(type.at(idx))
 	{
 		case 't':
+			break;
 			GLint active;
 			glGetIntegerv(GL_ACTIVE_TEXTURE, &active);
-			glActiveTexture(GL_TEXTURE0+n_tex);
+
+			glActiveTexture(GL_TEXTURE0+textures[uniformId[idx]]);
+
+			GLint activetmp;
+			glGetIntegerv(GL_ACTIVE_TEXTURE, &activetmp);
+
 			glBindTexture(GL_TEXTURE_2D, *((GLuint*)value));
-			glUniform1iARB(uniformId.at(idx), n_tex);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			glUniform1iARB(uniformId.at(idx), textures[uniformId[idx]]);
+
 			glActiveTexture(active);
-			n_tex++;
 			break;
 		case 'i':
 			glUniform1i(uniformId.at(idx), *((int*)value));

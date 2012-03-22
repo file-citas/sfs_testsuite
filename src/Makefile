@@ -1,4 +1,4 @@
-LIBS=-lglut -lGLU -lGLEW
+LIBS=-lglut -lGLU -lGLEW -lGL
 CCFLAGS=-g
 
 all: Display

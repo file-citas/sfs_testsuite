@@ -4,7 +4,6 @@ varying vec4 l;
 varying vec4 v;
 
 uniform sampler2D tex;
-uniform int fw;
 uniform float tsx;
 uniform float tsy;
 uniform float Imin;
@@ -53,7 +52,4 @@ void main()
 	vec3 N = cos * L + sin * normalize(G);
 
 	gl_FragColor = vec4(normalize(N), 1.0);
-	 /*
-	gl_FragColor = normalize(vec4(p, q, fw, 1.0));
-	 */
 }

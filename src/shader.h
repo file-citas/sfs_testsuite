@@ -42,6 +42,7 @@ private:
 	vector<void*> value;
 	vector<GLuint> uniformId;
 	map<const char*, uint> stu;
+	map<GLuint, GLuint> textures;
 	vector<char> type;
 };
 #endif
